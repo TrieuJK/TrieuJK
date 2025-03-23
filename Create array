@@ -1,1 +1,111 @@
+#include <iostream>
+#include <random>
+#include <cstring> 
+#include <filesystem>
+#include <fstream>
+
+using namespace std;
+
+int *SortedArray(int n) {
+    int *arr = new int[n];
+    for (int i = 0; i < n; i++) {
+        arr[i] = i + 1;
+    }
+    return arr;
+}
+
+int *ReverseSortedArray(int n) {
+    int *arr = new int[n];
+    for (int i = 0; i < n; i++) {
+        arr[i] = n - i;
+    }
+    return arr;
+}
+
+int *NearlySortedArray(int n, int changedPercent) {
+    int *arr = new int[n];
+    for (int i = 0; i < n; i++) {
+        arr[i] = i + 1;
+    }
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dist(0, n - 1);
+
+    int swaps = (changedPercent * n) / 100;
+    for (int i = 0; i < swaps; i++) {
+        int idx1 = dist(gen);
+        int idx2 = dist(gen);
+        swap(arr[idx1], arr[idx2]);
+    }
+
+    return arr;
+}
+
+int *RandomArray(int size) {
+    int *arr = new int[size];
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dist(1, 1000000000);
+    
+    for (int i = 0; i < size; i++) {
+        arr[i] = dist(gen);
+    }
+    return arr;
+}
+
+bool isNumber(const char *s) {
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (!isdigit(s[i])) return false;
+    }
+    return true;
+}
+
+int main(int arg, char *argvc[]) {
+    if (arg != 5) {
+        cout << "Syntax: ARRAY -s <AmountArray> -d <ArrayName>\n";
+        return 1;
+    }
+
+    if (strcmp(argvc[1], "-s") != 0 || strcmp(argvc[3], "-d") != 0) {
+        cout << "Invalid syntax. Use: -s <AmountArray> -d <ArrayType>.\n";
+        return 1;
+    }
+
+    if (!isNumber(argvc[2])) {
+        cerr << "Unable to create an array with a non-numeric element: " << argvc[2] << "\n";
+        return 1;
+    }
+
+    int n = atoi(argvc[2]);
+    int *arr;
+    int t = 0;
+
+    if (strcmp(argvc[4], "SortedArray") == 0) t = 1;
+    if (strcmp(argvc[4], "ReverseSortedArray") == 0) t = 2;
+    if (strcmp(argvc[4], "NearlySortedArray") == 0) t = 3;
+    if (strcmp(argvc[4], "RandomArray") == 0) t = 4;
+    if (t == 0) return -1;
+
+    switch (t) {
+        case 1: arr = SortedArray(n); break;
+        case 2: arr = ReverseSortedArray(n); break;
+        case 3: {
+            int x;
+            cout << "Enter changed percent: ";
+            cin >> x;
+            arr = NearlySortedArray(n, x);
+            break;
+        }
+        case 4: arr = RandomArray(n); break;
+        default: cerr << "Invalid Syntax"; return 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        cout << arr[i] << " ";
+    }
+    
+    delete[] arr;  
+    return 0;
+}
 
