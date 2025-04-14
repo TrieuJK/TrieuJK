@@ -1,0 +1,204 @@
+#include<iostream>
+#include<functional>
+#include<random>
+#include<vector>
+using namespace std;
+//Đệ quy
+// - Thuật toán tìm kiếm (linear search, binary search), tập trung binary search trên vector đã được sắp xếp.
+// - Thuật toán sắp xếp. Tập trung quick sort, merge sort, bubble sort, insertion sort;  Biến thể của quick sort (các thể loại pivot khác nhau), nếu có.
+enum stragegy{
+    FIRST_ELEMENT,
+    MEDIAN_ELEMENT,
+    LAST_ELEMENT,
+    MEDIAN_OF_THREE
+    };
+void merge(vector<int> a, int l , int m , int r){
+    int m1 = m - l + 1;
+    int m2 = r - m;
+    vector<int> l1(a.begin() + l, a.begin() + m + 1);
+    vector<int> l2(a.begin() + m + 1, a.begin() + r + 1);        
+    int i = 0, j = 0, k  = l    ;
+    while(i < m1 && j < m2){
+        if(l1[i] < l2[j]){
+            a[k++] = l1[i++];
+        }else{
+            a[k++] = l2[j++];
+        }
+    }
+    while(i < m1){
+        a[k++] = l1[i++];
+    }
+    while (j <m2)
+    {
+        a[k++] = l2[j++];
+    }
+}
+void MergeSort(vector<int>& arr, int l, int r){
+    if(l < r){
+        int m =l +  (r - l) / 2;
+        MergeSort(arr, l ,m );
+        MergeSort(arr, m + 1, r);
+        merge(arr, l , m ,r);
+
+    }
+}
+namespace MySet
+{
+    template<typename T>
+    void swap(T& a, T& b){
+        T c = a;
+        a = b;
+        b = c;
+}   
+    template <typename T>
+    T max (T a, T b){
+        return a < b ? b : a;
+    }
+} 
+
+int medianofthree(vector<int>& a, int l , int r){
+    int m = l + (r - l) /2;
+    if(a[l] > a[m]) MySet::swap(a[l], a[m]);
+    if(a[l] > a[r]) MySet::swap(a[l],a[r]);
+    if(a[r] < a[m]) MySet::swap(a[r],a[m]);
+    return m;
+}
+int Random(vector<int> & a, int l, int r){
+    random_device rd;
+    mt19937 gd(rd());
+    uniform_int_distribution dist(l, r) ;
+    return dist(gd);
+}
+
+int partition (vector<int>& a, int l ,int r, stragegy STRAGEGY){
+    int pivotindex ;
+    if(STRAGEGY == FIRST_ELEMENT){
+        pivotindex = l;
+    } else if(STRAGEGY == MEDIAN_ELEMENT){
+        pivotindex = l+ (r + l) / 2 ;
+    }else if (STRAGEGY == LAST_ELEMENT){
+        pivotindex = r;
+    }
+    else{
+        pivotindex = medianofthree(a,l,r);
+    }
+    MySet::swap(a[pivotindex], a[r]);
+    int pivot = a[r];
+    int i = l - 1;
+    for(int j = l; j < r; j++){
+        if(a[j] < pivot){
+            i++;
+            MySet::swap(a[i],a[j]);
+        }
+    }
+    MySet::swap(a[i+1], a[r]);
+    return i + 1;
+}
+void quickSort(vector<int>& a , int l, int r, stragegy STRAGEGY){
+    if(l < r){
+        int pi = partition(a, l ,r,STRAGEGY);
+        quickSort(a, l , pi - 1,STRAGEGY);
+        quickSort(a,pi+1,r,STRAGEGY);
+    }
+}
+
+void BubbleSort(vector<int> & a, int n){
+    for(int i = 0; i < n; i++){
+        for(int j = i; j < n; j++){
+            if(a[i] > a[j]) MySet::swap(a[i], a[j]);
+        }
+    }
+}
+
+void InsertionSort(vector<int>& a, int n) {
+    for(int i = 1; i < n; i++) {
+        int temp = a[i];
+        int j = i - 1;
+        while(j >= 0 && a[j] > temp) {
+            a[j + 1] = a[j]; // dịch sang phải
+            j--;
+        }
+        a[j + 1] = temp; // chèn vào đúng chỗ
+    }
+}
+int BinarySearch(vector<int> a, int l , int r, int x){
+    if(l >  r) return -1;
+    int mid = l + (r - l) / 2;
+    if(a[mid] < x){
+        return BinarySearch(a, mid + 1, r, x);
+    }else if(a[mid] > x) {
+        return BinarySearch(a, l, mid - 1, x);
+    }else return mid;
+}
+
+bool cau2(vector<int> a, int n , int d){
+    int ASII[250]{0};
+
+    for(int i = 0; i < n; i++){
+        ASII[a[i]] = 1;
+    }
+
+    for(int i = 0 ; i < n; i++){
+        int temp = d - a[i];
+        if(temp != a[i])
+        if(ASII[temp]) return true;
+    }
+return false;
+}
+
+
+int maxLengthSubarraySumLE(int a[], int n, int S){
+int sum = 0 , count  = 0;
+int l = 0, r =0;
+while(r < n){
+    sum += a[r];
+    while(sum <= S){
+        sum -= a[l];
+        l++;
+    }
+    count = MySet::max(count, r - l + 1);
+    r++;
+}
+return count;
+}
+
+int findLastLE(const vector<int> &v, int l, int r, int x){
+    if(l > r) return l - 1;
+    int m = l + (r - l)/2;
+    if(x < v[m])return  findLastLE(v, l ,m - 1 ,x);
+    else if (x > v[m]) return findLastLE(v, m + 1, r, x);
+    else return m; 
+}
+
+
+void heapify(vector<int> &a, int n, int i) {
+    int largest = i;
+    int l = 2*i + 1;
+    int r = 2*i + 2;
+
+    if (l < n && a[l] > a[largest]) largest = l;
+    if (r < n && a[r] > a[largest]) largest = r;
+
+    if (largest != i) {
+        MySet::swap(a[i], a[largest]);
+        heapify(a, n, largest);
+    }
+}
+
+void HeapSort(vector<int> &a) {
+    int n = a.size();
+
+    // Build max heap
+    for (int i = n/2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    // Heap sort
+    for (int i = n - 1; i > 0; i--) {
+        MySet::swap(a[0], a[i]);      
+        heapify(a, i, 0);            
+    }
+}
+
+
+
+int main() {
