@@ -1,0 +1,106 @@
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+};
+
+Node* newNode(int x) {
+    Node* node = new Node{x, nullptr, nullptr, 1};
+    return node;
+}
+
+Node* insertNode(Node* root, int data) {
+    if (!root) return newNode(data);
+    if (data < root->key)
+        root->left = insertNode(root->left, data);
+    else if (data > root->key)
+        root->right = insertNode(root->right, data);
+    return root;
+}
+
+Node* searchNode(Node* root, int data) {
+    if (!root) return nullptr;
+    if (data < root->key)
+        return searchNode(root->left, data);
+    else if (data > root->key)
+        return searchNode(root->right, data);
+    else
+        return root;
+}
+
+int findMin(Node* root) {
+    if (!root) return -1; // hoặc giá trị báo lỗi
+    while (root->left) {
+        root = root->left;
+    }
+    return root->key;
+}
+
+Node* deleteNode(Node* root, int data) {
+    if (!root) return nullptr;
+    if (data < root->key)
+        root->left = deleteNode(root->left, data);
+    else if (data > root->key)
+        root->right = deleteNode(root->right, data);
+    else {
+        if (!root->left && !root->right) {
+            delete root;
+            return nullptr;
+        }
+        else if (!root->left) {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        }
+        else if (!root->right) {
+            Node* temp = root->left;
+            delete root;
+            return temp;
+        }
+        else {
+            int Min = findMin(root->right);
+            root->key = Min;
+            root->right = deleteNode(root->right, Min);
+        }
+    }
+    return root;
+}
+
+void NLR(Node* root) {
+    if (!root) return;
+    cout << root->key << " ";
+    NLR(root->left);
+    NLR(root->right);
+}
+
+void LNR(Node* root) {
+    if (!root) return;
+    LNR(root->left);
+    cout << root->key << " ";
+    LNR(root->right);
+}
+
+void LRN(Node* root) {
+    if (!root) return;
+    LRN(root->left);
+    LRN(root->right);
+    cout << root->key << " ";
+}
+
+void LevelOrder(Node* root) {
+    vector<Node*> arr;
+    if (!root) return;
+    arr.push_back(root);
+    int i = 0;
+    while (i < arr.size()) {
+        Node* cur = arr[i];
+        if (cur->left) arr.push_back(cur->left);
+        if (cur->right) arr.push_back(cur->right);
+        i++;
+    }
+    for (auto x : arr) {
+        cout << x->key << " ";
+    }
+    cout << endl;
+}
