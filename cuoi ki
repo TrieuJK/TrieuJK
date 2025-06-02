@@ -283,3 +283,141 @@ public:
     }
 };
 ///
+class Graph {
+private:
+    int V;
+    vector<vector<int>> adjMatrix;
+public: 
+    Graph(int vertices) : V(vertices) {
+        adjMatrix.resize(V, vector<int>(V, 0));
+    }
+
+    void addEge(int src, int dest, int weight){
+        adjMatrix[src][dest] = weight;
+        adjMatrix[dest][src] = weight; // For undirected graph
+    }
+    void Prim(int source) {
+        vector<int> key(V, INT_MAX);
+        vector<int> parent(V, -1);
+        vector<bool> inMST(V, false);
+        key[source] = 0;
+
+        for (int count = 0; count < V - 1; count++) {
+            int u = -1, minKey = INT_MAX;
+            // Find the vertex with the minimum key value not yet included in MST
+            for (int v = 0; v < V; v++) {
+                if (!inMST[v] && key[v] < minKey) {
+                    minKey = key[v];
+                    u = v;
+                }
+            }
+
+            if (u == -1) break; // All vertices included or disconnected graph
+
+            inMST[u] = true;
+
+            // Update key and parent for adjacent vertices
+            for (int v = 0; v < V; v++) {
+                if (adjMatrix[u][v] && !inMST[v] && adjMatrix[u][v] < key[v]) {
+                    key[v] = adjMatrix[u][v];
+                    parent[v] = u;
+                }
+            }
+        }
+
+        // Output the MST
+        cout << "Edge \tWeight\n";
+        for (int i = 0; i < V; i++) {
+            if (parent[i] != -1)
+                cout << parent[i] << " - " << i << "\t" << adjMatrix[i][parent[i]] << "\n";
+        }
+    }
+
+    void Dijkstra(int source) {
+        vector<int> dist(V, INT_MAX);
+        vector<bool> visited(V, false);
+        dist[source] = 0;
+
+        for (int count = 0; count < V - 1; count++) {
+            int u = -1, minDist = INT_MAX;
+            // Find the vertex with the minimum distance value not yet included in the shortest path tree
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && dist[v] < minDist) {
+                    minDist = dist[v];
+                    u = v;
+                }
+            }
+
+            if (u == -1) break; // All vertices included or disconnected graph
+
+            visited[u] = true;
+
+            // Update distance for adjacent vertices    
+            for (int v = 0; v < V; v++) {
+                if (adjMatrix[u][v] && !visited[v] && dist[u] + adjMatrix[u][v] < dist[v]) {
+                    dist[v] = dist[u] + adjMatrix[u][v];
+                }
+            }
+        }
+
+        // Output the shortest distances
+        cout << "Vertex Distance from Source\n";
+        for (int i = 0; i < V; i++) {
+            cout << i << "\t" << dist[i] << "\n";
+        }
+    }
+    void DijAdvace(int vertex){
+    vector<int> key(V, INT_MAX);
+    vector<bool> visited(V, false);
+    vector<int> parent(V, -1);
+
+    // Min-heap (distance, vertex)
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+
+    key[vertex] = 0;
+    pq.push({0, vertex});
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        if (visited[u]) continue;
+        visited[u] = true;
+
+        for (int v = 0; v < V; v++) {
+            if (adjMatrix[u][v] > 0 && !visited[v]) {
+                int newDist = key[u] + adjMatrix[u][v];
+                if (newDist < key[v]) {
+                    key[v] = newDist;
+                    parent[v] = u;
+                    pq.push({key[v], v});
+                }
+            }
+        }
+    }
+
+    printPaths(key, parent);
+}
+    void printPaths(vector<int> key, vector<int> parent){
+        cout << "vertex\tdistance\tpath";
+        for(int i = 0; i < V; i++){
+            if(key[i] == INT_MAX)
+            cout << i << " INF " << " - ";
+            else{
+            cout << i << " " << key[i] ;
+            printPath(i, parent);
+            }
+        }
+    }
+    void printPath(int dest, vector<int> parent){
+        if(parent[dest] == -1) {
+            cout << dest ;
+            return;
+        } 
+        printPath(parent[dest], parent);
+        cout << " -> " << dest; 
+
+    }
+}; 
+
+};
