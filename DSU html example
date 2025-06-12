@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSU Web Demo with Tree</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    #output {
+      margin-top: 15px;
+      white-space: pre-line;
+      background: #f3f3f3;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    svg {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Disjoint Set Union (DSU) Demo with Tree Visualization</h2>
+  <input type="number" id="sizeInput" placeholder="Nhập N" min="1" />
+  <button onclick="initializeDSU()">Khởi tạo</button>
+
+  <br />
+  <input type="text" id="commandInput" placeholder="union 1 2 hoặc find 1" oninput="showSuggestion()" />
+  <div id="suggestion" style="color: #888; margin-left:5px;"></div>
+  <button onclick="processCommand()">Thực hiện</button>
+
+  <div id="output"></div>
+  <svg width="800" height="400" id="tree"></svg>
+
+  <script>
+    let parent = [], rank = [], size = 0;
+
+    function initializeDSU() {
+      size = parseInt(document.getElementById("sizeInput").value);
+      parent = Array.from({ length: size + 1 }, (_, i) => i);
+      rank = Array(size + 1).fill(0);
+      document.getElementById("output").innerText = `DSU đã được khởi tạo với ${size} phần tử.`;
+      drawTree();
+    }
+
+    function find(x) {
+      if (parent[x] !== x) parent[x] = find(parent[x]);
+      return parent[x];
+    }
+
+    function union(x, y) {
+      let a = find(x);
+      let b = find(y);
+      if (a !== b) {
+        if (rank[a] < rank[b]) [a, b] = [b, a];
+        parent[b] = a;
+        if (rank[a] === rank[b]) rank[a]++;
+      }
+    }
+
+    function processCommand() {
+      const input = document.getElementById("commandInput").value.trim();
+      const output = document.getElementById("output");
+      const parts = input.split(" ");
+      if (input.startsWith("union")) {
+        if (parts.length !== 3) return output.innerText = "Cú pháp sai. Dùng: union x y";
+        const x = parseInt(parts[1]), y = parseInt(parts[2]);
+        if (isNaN(x) || isNaN(y) || x < 1 || y < 1 || x > size || y > size)
+          return output.innerText = "Giá trị x, y phải nằm trong [1, N]";
+        union(x, y);
+        output.innerText = `Đã hợp nhất ${x} và ${y}.\n\n` + getTreeText();
+        drawTree();
+      } else if (input.startsWith("find")) {
+        if (parts.length !== 2) return output.innerText = "Cú pháp sai. Dùng: find x";
+        const x = parseInt(parts[1]);
+        if (isNaN(x) || x < 1 || x > size)
+          return output.innerText = "Giá trị x phải nằm trong [1, N]";
+        const res = find(x);
+        output.innerText = `Đại diện của ${x} là: ${res}\n\n` + getTreeText();
+        drawTree();
+      } else {
+        output.innerText = "Lệnh không hợp lệ. Dùng union x y hoặc find x";
+      }
+      document.getElementById("commandInput").value = "";
+      document.getElementById("commandInput").focus();
+    }
+
+    function getTreeText() {
+      let tree = "Cấu trúc cây hiện tại:\n";
+      for (let i = 1; i <= size; i++) {
+        tree += `Node ${i} → Parent: ${parent[i]}\n`;
+      }
+      return tree;
+    }
+
+    function drawTree() {
+      const svg = document.getElementById("tree");
+      svg.innerHTML = "";
+      const radius = 15;
+      const gap = 60;
+      const height = 300;
+
+      for (let i = 1; i <= size; i++) {
+        let px = i * gap;
+        let py = height;
+        let ppx = parent[i] * gap;
+        let ppy = height - 100;
+
+        if (i !== parent[i]) {
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", px);
+          line.setAttribute("y1", py);
+          line.setAttribute("x2", ppx);
+          line.setAttribute("y2", ppy);
+          line.setAttribute("stroke", "#000");
+          svg.appendChild(line);
+        }
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", px);
+        circle.setAttribute("cy", py);
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", "#4caf50");
+        svg.appendChild(circle);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", px);
+        text.setAttribute("y", py + 5);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "12");
+        text.textContent = i;
+        svg.appendChild(text);
+      }
+    }
+
+    function showSuggestion() {
+      const input = document.getElementById("commandInput").value.trim().toLowerCase();
+      const suggestion = document.getElementById("suggestion");
+      if (input.startsWith("un")) {
+        suggestion.innerText = "Gợi ý: union x y - hợp nhất hai phần tử x và y";
+      } else if (input.startsWith("fi")) {
+        suggestion.innerText = "Gợi ý: find x - tìm đại diện của phần tử x";
+      } else if (input.startsWith("union")) {
+        const parts = input.split(" ");
+        if (parts.length === 3) {
+          const x = parts[1];
+          const y = parts[2];
+          suggestion.innerText = `Gợi ý: union ${x} ${y} - hợp nhất hai tập hợp chứa ${x} và ${y}`;
+        } else {
+          suggestion.innerText = "Gợi ý: union x y - hợp nhất hai phần tử x và y";
+        }
+      } else if (input.startsWith("find")) {
+        const parts = input.split(" ");
+        if (parts.length === 2) {
+          const x = parts[1];
+          suggestion.innerText = `Gợi ý: find ${x} - tìm đại diện của phần tử ${x}`;
+        } else {
+          suggestion.innerText = "Gợi ý: find x - tìm đại diện của phần tử x";
+        }
+      } else {
+        suggestion.innerText = "";
+      }
+    }
+
+    // Hỗ trợ nhấn Enter để thực hiện lệnh
+    document.getElementById("commandInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") processCommand();
+    });
+  </script>
+</body>
+</html>
